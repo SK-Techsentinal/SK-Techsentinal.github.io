@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>S.H.I.E.L.D. — Avengers Initiative Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:       #050810;
+    --panel:    #0a0f1e;
+    --border:   #1a2540;
+    --red:      #c0392b;
+    --red-glow: #e74c3c;
+    --gold:     #f39c12;
+    --blue:     #1a6fc4;
+    --blue-glow:#2980b9;
+    --cyan:     #00d4ff;
+    --text:     #c8d6e5;
+    --dim:      #5a6a7e;
+    --white:    #e8f0fe;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 400;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* ── SCANLINE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,212,255,0.012) 2px,
+      rgba(0,212,255,0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* ── GRID BG ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(26,111,196,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,111,196,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 3rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(5,8,16,0.95);
+    backdrop-filter: blur(10px);
+  }
+
+  .shield-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .shield-emblem {
+    width: 42px;
+    height: 42px;
+    position: relative;
+  }
+
+  .shield-emblem svg { width: 100%; height: 100%; }
+
+  .shield-text h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.2em;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .shield-text p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .status-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  .status-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--cyan);
+  }
+
+  .threat-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--red);
+    padding: 0.4rem 0.9rem;
+    animation: pulse-border 2s infinite;
+  }
+
+  .threat-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red-glow);
+    animation: blink 1s infinite;
+  }
+
+  .threat-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--red-glow);
+    text-transform: uppercase;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 4px rgba(192,57,43,0.3); }
+    50% { box-shadow: 0 0 12px rgba(192,57,43,0.6); }
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .app {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: calc(100vh - 73px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: rgba(10,15,30,0.9);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-header h2 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .search-box {
+    position: relative;
+  }
+
+  .search-box input {
+    width: 100%;
+    background: rgba(26,37,64,0.6);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem 0.5rem 2rem;
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .search-box input:focus { border-color: var(--cyan); }
+  .search-box input::placeholder { color: var(--dim); }
+
+  .search-icon {
+    position: absolute;
+    left: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dim);
+    font-size: 0.7rem;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(0,212,255,0.07);
+  }
+
+  .hero-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0.5rem 0;
+  }
+
+  .hero-list::-webkit-scrollbar { width: 3px; }
+  .hero-list::-webkit-scrollbar-track { background: transparent; }
+  .hero-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .hero-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.18s;
+    position: relative;
+  }
+
+  .hero-item:hover {
+    background: rgba(26,37,64,0.5);
+    border-left-color: var(--blue);
+  }
+
+  .hero-item.active {
+    background: rgba(26,111,196,0.12);
+    border-left-color: var(--cyan);
+  }
+
+  .hero-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-item-info h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  .hero-item-info p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .hero-status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .status-active { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
+  .status-mia    { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+  .status-kia    { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+  /* ── MAIN PANEL ── */
+  .main-panel {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+  }
+
+  .panel-top {
+    padding: 1.25rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,15,30,0.6);
+  }
+
+  .breadcrumb {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  .breadcrumb span { color: var(--cyan); }
+
+  .panel-actions {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .panel-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .panel-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  /* ── PROFILE VIEW ── */
+  .profile-view {
+    overflow-y: auto;
+    padding: 2.5rem;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .profile-view::-webkit-scrollbar { width: 3px; }
+  .profile-view::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* Profile left column */
+  .profile-left {}
+
+  .profile-portrait {
+    width: 100%;
+    aspect-ratio: 3/4;
+    position: relative;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+
+  .portrait-bg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7rem;
+    position: relative;
+  }
+
+  .portrait-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(5,8,16,0.9) 0%, transparent 50%);
+  }
+
+  .portrait-scanline {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px
+    );
+  }
+
+  .portrait-id {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .portrait-id h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    color: var(--white);
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(0,0,0,0.8);
+  }
+
+  .portrait-id p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+
+  /* Clearance badge */
+  .clearance-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    background: rgba(10,15,30,0.8);
+  }
+
+  .clearance-level {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .clearance-info p:first-child {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  .clearance-info p:last-child {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Power bars */
+  .power-section {
+    margin-bottom: 1rem;
+  }
+
+  .power-section h4 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .power-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .power-bar-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    color: var(--dim);
+    width: 80px;
+    flex-shrink: 0;
+  }
+
+  .power-bar-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(26,37,64,0.8);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .power-bar-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .power-bar-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--white);
+    width: 24px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Right column */
+  .profile-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .info-section {
+    border: 1px solid var(--border);
+    background: rgba(10,15,30,0.6);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .info-section h4 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1.5rem;
+  }
+
+  .info-field label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
+    color: var(--dim);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .info-field p {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--white);
+    letter-spacing: 0.04em;
+  }
+
+  .bio-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .abilities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .ability-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid;
+    text-transform: uppercase;
+  }
+
+  .tag-blue  { border-color: var(--blue);  color: var(--blue-glow);  background: rgba(26,111,196,0.1); }
+  .tag-red   { border-color: var(--red);   color: var(--red-glow);   background: rgba(192,57,43,0.1); }
+  .tag-gold  { border-color: var(--gold);  color: var(--gold);       background: rgba(243,156,18,0.1); }
+  .tag-cyan  { border-color: var(--cyan);  color: var(--cyan);       background: rgba(0,212,255,0.08); }
+
+  /* Mission log */
+  .mission-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(26,37,64,0.5);
+  }
+
+  .mission-row:last-child { border-bottom: none; }
+
+  .mission-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--dim);
+    flex-shrink: 0;
+    width: 32px;
+  }
+
+  .mission-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .mission-outcome {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .outcome-success { color: #2ecc71; }
+  .outcome-partial { color: var(--gold); }
+  .outcome-failed  { color: var(--red-glow); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 1rem;
+    color: var(--dim);
+  }
+
+  .empty-state .big-icon { font-size: 4rem; opacity: 0.2; }
+
+  .empty-state h3 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* ── COUNTER ── */
+  .sidebar-footer {
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .counter {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    color: var(--dim);
+  }
+
+  .counter span { color: var(--cyan); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    header { padding: 1rem 1.2rem; }
+    .header-status { display: none; }
+
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; min-height: calc(100vh - 65px); }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 240px; }
+    .profile-view { grid-template-columns: 1fr; padding: 1.5rem; }
+    .profile-portrait { aspect-ratio: 16/9; max-height: 220px; }
+  }
+
+  /* ── TYPING ANIMATION ── */
+  .typing::after {
+    content: '_';
+    animation: blink 1s infinite;
+  }
+
+  /* ── CORNER DECORATIONS ── */
+  .corner-tl, .corner-br {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+  }
+  .corner-tl { top: 0; left: 0; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+  .corner-br { bottom: 0; right: 0; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+
+  .relative { position: relative; }
+
+  /* entrance anim */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .profile-view { animation: slideIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="shield-logo">
+    <div class="shield-emblem">
+      <svg viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="21,2 40,12 40,28 21,40 2,28 2,12" fill="none" stroke="#1a6fc4" stroke-width="1.5"/>
+        <polygon points="21,7 35,15 35,27 21,35 7,27 7,15" fill="none" stroke="#00d4ff" stroke-width="1"/>
+        <circle cx="21" cy="21" r="6" fill="none" stroke="#c0392b" stroke-width="1.5"/>
+        <line x1="21" y1="7" x2="21" y2="15" stroke="#00d4ff" stroke-width="1"/>
+        <line x1="21" y1="27" x2="21" y2="35" stroke="#00d4ff" stroke-width="1"/>
+        <line x1="7"  y1="15" x2="15" y2="19" stroke="#00d4ff" stroke-width="1"/>
+        <line x1="27" y1="19" x2="35" y2="15" stroke="#00d4ff" stroke-width="1"/>
+        <line x1="7"  y1="27" x2="15" y2="23" stroke="#00d4ff" stroke-width="1"/>
+        <line x1="27" y1="23" x2="35" y2="27" stroke="#00d4ff" stroke-width="1"/>
+        <circle cx="21" cy="21" r="2" fill="#c0392b"/>
+      </svg>
+    </div>
+    <div class="shield-text">
+      <h1>S.H.I.E.L.D.</h1>
+      <p>Avengers Initiative · Personnel Database · Level 7 Access</p>
+    </div>
+  </div>
+
+  <div class="header-status">
+    <div class="status-item">
+      <span class="status-label">Clearance</span>
+      <span class="status-value">LEVEL 7</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Agent</span>
+      <span class="status-value">SK-0042</span>
+    </div>
+    <div class="threat-badge">
+      <div class="threat-dot"></div>
+      <span class="threat-text">Threat Level: High</span>
+    </div>
+  </div>
+</header>
+
+<!-- APP LAYOUT -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>// Operative Roster</h2>
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" placeholder="Search operatives..." oninput="filterHeroes()" />
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+        <button class="filter-btn" onclick="setFilter('active', this)">Active</button>
+        <button class="filter-btn" onclick="setFilter('mia', this)">MIA</button>
+        <button class="filter-btn" onclick="setFilter('avenger', this)">Avenger</button>
+        <button class="filter-btn" onclick="setFilter('guardian', this)">Guardian</button>
+      </div>
+    </div>
+
+    <div class="hero-list" id="heroList"></div>
+
+    <div class="sidebar-footer">
+      <span class="counter">Operatives: <span id="heroCount">0</span></span>
+      <span class="counter">Active: <span id="activeCount">0</span></span>
+    </div>
+  </div>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel">
+    <div class="panel-top">
+      <div class="breadcrumb">DATABASE / PERSONNEL / <span id="breadcrumbName">SELECT OPERATIVE</span></div>
+      <div class="panel-actions">
+        <button class="panel-btn">⬇ EXPORT</button>
+        <button class="panel-btn">⊞ COMPARE</button>
+        <button class="panel-btn" onclick="openRandom()">⟳ RANDOM</button>
+      </div>
+    </div>
+
+    <div id="mainContent">
+      <div class="empty-state">
+        <div class="big-icon">⬡</div>
+        <h3 class="typing">Select an operative to view profile</h3>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const heroes = [
+  {
+    id: 1,
+    name: "Tony Stark",
+    alias: "Iron Man",
+    status: "kia",
+    team: "avenger",
+    emoji: "🦾",
+    color: "#c0392b",
+    clearance: 10,
+    clearanceLabel: "Omega",
+    clearanceColor: "#c0392b",
+    dob: "29 May 1970",
+    origin: "Malibu, California",
+    affiliation: "Avengers / S.I.",
+    specialisation: "Weapons / Tech",
+    bio: "Billionaire genius, inventor of the Iron Man armour. Founded Stark Industries and rebuilt it into a force for global protection. Ultimate sacrifice during the Time Heist secured the defeat of Thanos.",
+    abilities: [
+      {label:"Arc Reactor Tech", tag:"tag-red"},
+      {label:"Genius Intellect", tag:"tag-gold"},
+      {label:"Combat Suit", tag:"tag-red"},
+      {label:"Hacking", tag:"tag-blue"},
+    ],
+    stats: { strength: 75, intelligence: 100, speed: 70, durability: 85, energy: 90 },
+    missions: [
+      {name:"Operation: Afghanistan Escape", outcome:"success"},
+      {name:"Chitauri Invasion — New York", outcome:"success"},
+      {name:"Operation: Infinity War", outcome:"partial"},
+      {name:"Time Heist — Endgame", outcome:"success"},
+    ]
+  },
+  {
+    id: 2,
+    name: "Steve Rogers",
+    alias: "Captain America",
+    status: "mia",
+    team: "avenger",
+    emoji: "🛡️",
+    color: "#1a6fc4",
+    clearance: 9,
+    clearanceLabel: "Alpha",
+    clearanceColor: "#1a6fc4",
+    dob: "4 July 1918",
+    origin: "Brooklyn, New York",
+    affiliation: "Avengers / S.H.I.E.L.D.",
+    specialisation: "Tactical Leadership",
+    bio: "Super-soldier and moral compass of the Avengers. Enhanced by Project Rebirth to the peak of human perfection. Returned to the past to live out his life after the Time Heist, passing the shield to Sam Wilson.",
+    abilities: [
+      {label:"Super Soldier Serum", tag:"tag-blue"},
+      {label:"Vibranium Shield", tag:"tag-cyan"},
+      {label:"Tactical Genius", tag:"tag-gold"},
+      {label:"Enhanced Endurance", tag:"tag-blue"},
+    ],
+    stats: { strength: 90, intelligence: 80, speed: 88, durability: 92, energy: 40 },
+    missions: [
+      {name:"Operation: HYDRA — WWII", outcome:"success"},
+      {name:"Chitauri Invasion — New York", outcome:"success"},
+      {name:"Operation: Winter Soldier", outcome:"success"},
+      {name:"Time Heist — Endgame", outcome:"success"},
+    ]
+  },
+  {
+    id: 3,
+    name: "Natasha Romanoff",
+    alias: "Black Widow",
+    status: "kia",
+    team: "avenger",
+    emoji: "🕷️",
+    color: "#8e44ad",
+    clearance: 8,
+    clearanceLabel: "Alpha",
+    clearanceColor: "#8e44ad",
+    dob: "22 November 1984",
+    origin: "Stalingrad, USSR",
+    affiliation: "Avengers / S.H.I.E.L.D.",
+    specialisation: "Espionage / Infiltration",
+    bio: "World's greatest spy and former Red Room assassin turned S.H.I.E.L.D. asset. Sacrificed her life on Vormir to obtain the Soul Stone, ensuring the success of the Time Heist.",
+    abilities: [
+      {label:"Master Spy", tag:"tag-cyan"},
+      {label:"Martial Arts", tag:"tag-red"},
+      {label:"Widow's Bite", tag:"tag-blue"},
+      {label:"Infiltration", tag:"tag-cyan"},
+    ],
+    stats: { strength: 55, intelligence: 88, speed: 80, durability: 60, energy: 50 },
+    missions: [
+      {name:"Red Room — Classified", outcome:"partial"},
+      {name:"Chitauri Invasion — New York", outcome:"success"},
+      {name:"Operation: Winter Soldier", outcome:"success"},
+      {name:"Vormir — Soul Stone", outcome:"success"},
+    ]
+  },
+  {
+    id: 4,
+    name: "Thor Odinson",
+    alias: "God of Thunder",
+    status: "active",
+    team: "avenger",
+    emoji: "⚡",
+    color: "#f39c12",
+    clearance: 9,
+    clearanceLabel: "Alpha",
+    clearanceColor: "#f39c12",
+    dob: "964 AD, Asgard",
+    origin: "Asgard",
+    affiliation: "Avengers / Asgard",
+    specialisation: "Combat / Weather Manipulation",
+    bio: "Asgardian God of Thunder and Prince of Asgard. Wielder of Mjolnir and Stormbreaker. After the Snap, retreated to New Asgard in Norway before rejoining the Avengers for the Time Heist.",
+    abilities: [
+      {label:"Lightning Control", tag:"tag-gold"},
+      {label:"Mjolnir / Stormbreaker", tag:"tag-gold"},
+      {label:"Superhuman Strength", tag:"tag-red"},
+      {label:"Asgardian Durability", tag:"tag-blue"},
+    ],
+    stats: { strength: 100, intelligence: 65, speed: 85, durability: 100, energy: 95 },
+    missions: [
+      {name:"Frost Giant Invasion — Asgard", outcome:"success"},
+      {name:"Chitauri Invasion — New York", outcome:"success"},
+      {name:"Operation: Infinity War", outcome:"partial"},
+      {name:"Time Heist — Endgame", outcome:"success"},
+    ]
+  },
+  {
+    id: 5,
+    name: "Bruce Banner",
+    alias: "Hulk / Professor Hulk",
+    status: "active",
+    team: "avenger",
+    emoji: "💚",
+    color: "#27ae60",
+    clearance: 7,
+    clearanceLabel: "Beta",
+    clearanceColor: "#27ae60",
+    dob: "18 December 1969",
+    origin: "Dayton, Ohio",
+    affiliation: "Avengers",
+    specialisation: "Gamma Science / Brute Force",
+    bio: "World's foremost gamma radiation scientist who merged his intelligence with the Hulk's physical power to become Professor Hulk. Responsible for the Snap that restored half of all life in the universe.",
+    abilities: [
+      {label:"Unlimited Strength", tag:"tag-cyan"},
+      {label:"Gamma Radiation", tag:"tag-cyan"},
+      {label:"Genius Scientist", tag:"tag-gold"},
+      {label:"Regeneration", tag:"tag-blue"},
+    ],
+    stats: { strength: 100, intelligence: 95, speed: 60, durability: 100, energy: 85 },
+    missions: [
+      {name:"Chitauri Invasion — New York", outcome:"success"},
+      {name:"Operation: Sokovia", outcome:"partial"},
+      {name:"Operation: Infinity War", outcome:"partial"},
+      {name:"The Nano Gauntlet Snap", outcome:"success"},
+    ]
+  },
+  {
+    id: 6,
+    name: "Clint Barton",
+    alias: "Hawkeye / Ronin",
+    status: "active",
+    team: "avenger",
+    emoji: "🏹",
+    color: "#7f8c8d",
+    clearance: 7,
+    clearanceLabel: "Beta",
+    clearanceColor: "#7f8c8d",
+    dob: "7 January 1970",
+    origin: "Waverly, Iowa",
+    affiliation: "Avengers / S.H.I.E.L.D.",
+    specialisation: "Marksmanship / Close Combat",
+    bio: "World's greatest archer and S.H.I.E.L.D.'s most lethal non-powered operative. After losing his family to the Snap, became the vigilante Ronin before rejoining the Avengers for the Time Heist.",
+    abilities: [
+      {label:"Master Archer", tag:"tag-gold"},
+      {label:"Trick Arrows", tag:"tag-blue"},
+      {label:"Martial Arts", tag:"tag-red"},
+      {label:"Stealth Ops", tag:"tag-cyan"},
+    ],
+    stats: { strength: 60, intelligence: 72, speed: 75, durability: 65, energy: 20 },
+    missions: [
+      {name:"Chitauri Invasion — New York", outcome:"success"},
+      {name:"Sokovia Ultron Crisis", outcome:"success"},
+      {name:"Operation: Ronin", outcome:"partial"},
+      {name:"Vormir — Soul Stone", outcome:"success"},
+    ]
+  },
+  {
+    id: 7,
+    name: "Wanda Maximoff",
+    alias: "Scarlet Witch",
+    status: "mia",
+    team: "avenger",
+    emoji: "🔴",
+    color: "#e74c3c",
+    clearance: 8,
+    clearanceLabel: "Alpha",
+    clearanceColor: "#e74c3c",
+    dob: "10 February 1989",
+    origin: "Sokovia",
+    affiliation: "Avengers",
+    specialisation: "Chaos Magic / Reality Manipulation",
+    bio: "The Scarlet Witch — the most powerful magic user in the known universe. Underwent Hydra experiments that unlocked latent Chaos Magic. Created an entire alternate reality (WandaVision). Last seen in the Multiverse.",
+    abilities: [
+      {label:"Chaos Magic", tag:"tag-red"},
+      {label:"Reality Warping", tag:"tag-red"},
+      {label:"Telekinesis", tag:"tag-cyan"},
+      {label:"Mind Control", tag:"tag-cyan"},
+    ],
+    stats: { strength: 80, intelligence: 78, speed: 78, durability: 70, energy: 100 },
+    missions: [
+      {name:"Sokovia Ultron Crisis", outcome:"partial"},
+      {name:"Operation: Infinity War", outcome:"partial"},
+      {name:"Operation: Endgame", outcome:"success"},
+      {name:"Westview Incident — WandaVision", outcome:"partial"},
+    ]
+  },
+  {
+    id: 8,
+    name: "T'Challa",
+    alias: "Black Panther",
+    status: "kia",
+    team: "avenger",
+    emoji: "🐾",
+    color: "#9b59b6",
+    clearance: 9,
+    clearanceLabel: "Alpha",
+    clearanceColor: "#9b59b6",
+    dob: "1 November 1977",
+    origin: "Wakanda",
+    affiliation: "Avengers / Wakanda",
+    specialisation: "Combat / Vibranium Tech",
+    bio: "King of Wakanda and holder of the Black Panther mantle, enhanced by the Heart-Shaped Herb. Opened Wakanda to the world and forged crucial alliances that proved decisive during the Battle of Wakanda.",
+    abilities: [
+      {label:"Vibranium Suit", tag:"tag-cyan"},
+      {label:"Heart-Shaped Herb", tag:"tag-blue"},
+      {label:"Expert Combatant", tag:"tag-red"},
+      {label:"Tactical Leadership", tag:"tag-gold"},
+    ],
+    stats: { strength: 85, intelligence: 85, speed: 88, durability: 90, energy: 60 },
+    missions: [
+      {name:"Operation: Lagos", outcome:"partial"},
+      {name:"Operation: Infinity War — Wakanda", outcome:"partial"},
+      {name:"Time Heist — Endgame", outcome:"success"},
+      {name:"Battle of Earth", outcome:"success"},
+    ]
+  },
+  {
+    id: 9,
+    name: "Peter Parker",
+    alias: "Spider-Man",
+    status: "active",
+    team: "avenger",
+    emoji: "🕸️",
+    color: "#e74c3c",
+    clearance: 5,
+    clearanceLabel: "Delta",
+    clearanceColor: "#e74c3c",
+    dob: "10 August 2001",
+    origin: "Queens, New York",
+    affiliation: "Avengers / Stark Industries",
+    specialisation: "Enhanced Agility / Web-Slinging",
+    bio: "Bitten by a radioactive spider, Peter Parker developed superhuman agility, strength, and a precognitive 'Spider-Sense'. Recruited by Tony Stark. Currently the youngest active Avenger on record.",
+    abilities: [
+      {label:"Spider-Sense", tag:"tag-red"},
+      {label:"Wall Crawling", tag:"tag-blue"},
+      {label:"Web-Shooters", tag:"tag-cyan"},
+      {label:"Superhuman Agility", tag:"tag-gold"},
+    ],
+    stats: { strength: 80, intelligence: 82, speed: 92, durability: 70, energy: 30 },
+    missions: [
+      {name:"Berlin Airport Incident", outcome:"success"},
+      {name:"Titan — Infinity War", outcome:"partial"},
+      {name:"Battle of Earth", outcome:"success"},
+      {name:"Multiverse Incident", outcome:"success"},
+    ]
+  },
+  {
+    id: 10,
+    name: "Carol Danvers",
+    alias: "Captain Marvel",
+    status: "active",
+    team: "avenger",
+    emoji: "⭐",
+    color: "#f39c12",
+    clearance: 10,
+    clearanceLabel: "Omega",
+    clearanceColor: "#f39c12",
+    dob: "24 April 1960",
+    origin: "Jackson, Mississippi",
+    affiliation: "Avengers / Kree Empire",
+    specialisation: "Binary Energy / Space Combat",
+    bio: "Former USAF pilot exposed to Kree energy that unlocked photon-based powers. The most powerful Avenger by raw energy output. Operates primarily in deep space but was instrumental in the final battle against Thanos.",
+    abilities: [
+      {label:"Photon Blasts", tag:"tag-gold"},
+      {label:"Binary Mode", tag:"tag-gold"},
+      {label:"Space Flight", tag:"tag-cyan"},
+      {label:"Immense Durability", tag:"tag-blue"},
+    ],
+    stats: { strength: 100, intelligence: 75, speed: 100, durability: 98, energy: 100 },
+    missions: [
+      {name:"Kree-Skrull War", outcome:"success"},
+      {name:"Infinity Gauntlet Retrieval", outcome:"partial"},
+      {name:"Battle of Earth", outcome:"success"},
+      {name:"Operation: Deep Space", outcome:"success"},
+    ]
+  },
+  {
+    id: 11,
+    name: "Peter Quill",
+    alias: "Star-Lord",
+    status: "active",
+    team: "guardian",
+    emoji: "🌌",
+    color: "#e67e22",
+    clearance: 5,
+    clearanceLabel: "Delta",
+    clearanceColor: "#e67e22",
+    dob: "1 April 1980",
+    origin: "Missouiri, Earth",
+    affiliation: "Guardians of the Galaxy",
+    specialisation: "Tactical / Half-Celestial",
+    bio: "Half-human, half-Celestial abducted from Earth by Ravagers and later leader of the Guardians of the Galaxy. Wielded the Power Infinity Stone briefly due to his Celestial heritage.",
+    abilities: [
+      {label:"Celestial Lineage", tag:"tag-gold"},
+      {label:"Element Guns", tag:"tag-red"},
+      {label:"Jet Boots", tag:"tag-blue"},
+      {label:"Translator Implant", tag:"tag-cyan"},
+    ],
+    stats: { strength: 55, intelligence: 65, speed: 65, durability: 55, energy: 60 },
+    missions: [
+      {name:"Operation: Power Stone", outcome:"success"},
+      {name:"Operation: Infinity War — Titan", outcome:"failed"},
+      {name:"Battle of Earth", outcome:"success"},
+      {name:"Holiday Special — Knowhere", outcome:"success"},
+    ]
+  },
+  {
+    id: 12,
+    name: "Sam Wilson",
+    alias: "Captain America (II)",
+    status: "active",
+    team: "avenger",
+    emoji: "🦅",
+    color: "#1a6fc4",
+    clearance: 8,
+    clearanceLabel: "Alpha",
+    clearanceColor: "#1a6fc4",
+    dob: "23 September 1978",
+    origin: "Harlem, New York",
+    affiliation: "Avengers / S.H.I.E.L.D.",
+    specialisation: "Aerial Combat / Tactical",
+    bio: "US Air Force Pararescue veteran who became the Falcon using experimental EXO-7 wing tech. After the Time Heist, Steve Rogers passed him the Vibranium shield. He is the new Captain America.",
+    abilities: [
+      {label:"EXO-7 Falcon Wings", tag:"tag-blue"},
+      {label:"Vibranium Shield", tag:"tag-cyan"},
+      {label:"Combat Training", tag:"tag-red"},
+      {label:"Aerial Tactics", tag:"tag-gold"},
+    ],
+    stats: { strength: 72, intelligence: 78, speed: 82, durability: 72, energy: 30 },
+    missions: [
+      {name:"Operation: Winter Soldier", outcome:"success"},
+      {name:"Operation: Lagos", outcome:"partial"},
+      {name:"Battle of Earth", outcome:"success"},
+      {name:"Flag Smashers Op", outcome:"success"},
+    ]
+  },
+];
+
+let currentFilter = 'all';
+let currentHero = null;
+
+function getStatusClass(s) {
+  return s === 'active' ? 'status-active' : s === 'mia' ? 'status-mia' : 'status-kia';
+}
+
+function getStatusLabel(s) {
+  return s === 'active' ? 'ACTIVE' : s === 'mia' ? 'M.I.A.' : 'K.I.A.';
+}
+
+function renderList() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const list = document.getElementById('heroList');
+  const filtered = heroes.filter(h => {
+    const matchFilter = currentFilter === 'all' || h.status === currentFilter || h.team === currentFilter;
+    const matchSearch = h.name.toLowerCase().includes(q) || h.alias.toLowerCase().includes(q);
+    return matchFilter && matchSearch;
+  });
+
+  list.innerHTML = filtered.map(h => `
+    <div class="hero-item ${currentHero && currentHero.id === h.id ? 'active' : ''}" onclick="selectHero(${h.id})">
+      <div class="hero-avatar" style="background:${h.color}22; border:1px solid ${h.color}44;">${h.emoji}</div>
+      <div class="hero-item-info">
+        <h3>${h.alias}</h3>
+        <p>${h.name}</p>
+      </div>
+      <div class="hero-status-dot ${getStatusClass(h.status)}"></div>
+    </div>
+  `).join('');
+
+  document.getElementById('heroCount').textContent = filtered.length;
+  document.getElementById('activeCount').textContent = filtered.filter(h => h.status === 'active').length;
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+function filterHeroes() { renderList(); }
+
+function selectHero(id) {
+  currentHero = heroes.find(h => h.id === id);
+  renderList();
+  document.getElementById('breadcrumbName').textContent = currentHero.alias.toUpperCase();
+  renderProfile();
+}
+
+function openRandom() {
+  const r = heroes[Math.floor(Math.random() * heroes.length)];
+  selectHero(r.id);
+}
+
+function renderProfile() {
+  const h = currentHero;
+  const statKeys = ['strength','intelligence','speed','durability','energy'];
+  const statColors = {strength:'#c0392b',intelligence:'#f39c12',speed:'#00d4ff',durability:'#27ae60',energy:'#9b59b6'};
+
+  const powerBars = statKeys.map(k => `
+    <div class="power-bar-item">
+      <span class="power-bar-label">${k.toUpperCase()}</span>
+      <div class="power-bar-track">
+        <div class="power-bar-fill" style="width:${h.stats[k]}%; background:${statColors[k]};"></div>
+      </div>
+      <span class="power-bar-val">${h.stats[k]}</span>
+    </div>
+  `).join('');
+
+  const abilities = h.abilities.map(a => `<span class="ability-tag ${a.tag}">${a.label}</span>`).join('');
+
+  const missions = h.missions.map((m, i) => `
+    <div class="mission-row">
+      <span class="mission-num">#${String(i+1).padStart(2,'0')}</span>
+      <div>
+        <div class="mission-name">${m.name}</div>
+        <div class="mission-outcome outcome-${m.outcome}">${m.outcome.toUpperCase()}</div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="profile-view">
+      <div class="profile-left">
+        <div class="profile-portrait">
+          <div class="portrait-bg" style="background:linear-gradient(135deg,${h.color}33,${h.color}11);">
+            <span style="font-size:7rem">${h.emoji}</span>
+          </div>
+          <div class="portrait-overlay"></div>
+          <div class="portrait-scanline"></div>
+          <div class="portrait-id">
+            <h2>${h.alias}</h2>
+            <p>${h.name}</p>
+          </div>
+        </div>
+
+        <div class="clearance-badge relative">
+          <div class="corner-tl"></div>
+          <div class="corner-br"></div>
+          <div class="clearance-level" style="color:${h.clearanceColor}">${h.clearance}</div>
+          <div class="clearance-info">
+            <p>Security Clearance</p>
+            <p style="color:${h.clearanceColor}">${h.clearanceLabel} Access</p>
+          </div>
+        </div>
+
+        <div class="power-section">
+          <h4>// Combat Statistics</h4>
+          ${powerBars}
+        </div>
+      </div>
+
+      <div class="profile-right">
+        <div class="info-section">
+          <h4>// Personnel Data</h4>
+          <div class="info-grid">
+            <div class="info-field"><label>Date of Birth</label><p>${h.dob}</p></div>
+            <div class="info-field"><label>Origin</label><p>${h.origin}</p></div>
+            <div class="info-field"><label>Affiliation</label><p>${h.affiliation}</p></div>
+            <div class="info-field"><label>Specialisation</label><p>${h.specialisation}</p></div>
+            <div class="info-field"><label>Status</label>
+              <p style="color:${h.status==='active'?'#2ecc71':h.status==='mia'?'#f39c12':'#e74c3c'}">${getStatusLabel(h.status)}</p>
+            </div>
+            <div class="info-field"><label>Operative ID</label><p>AV-${String(h.id).padStart(4,'0')}</p></div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h4>// Operative Biography</h4>
+          <p class="bio-text">${h.bio}</p>
+        </div>
+
+        <div class="info-section">
+          <h4>// Confirmed Abilities</h4>
+          <div class="abilities-list">${abilities}</div>
+        </div>
+
+        <div class="info-section">
+          <h4>// Mission Log</h4>
+          ${missions}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Init
+renderList();
+</script>
+</body>
+</html>
