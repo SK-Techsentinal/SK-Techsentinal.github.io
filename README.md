@@ -6,7 +6,7 @@ I am a **Full-Stack Developer** and **Strategic Team Leader** with a **92% Disti
 ---
 
 ### 💼 Career Snapshot
-- **Total Development Impact:** 700+ FreeCodeCamp tasks completed.
+- **Total Development Impact:** 807+ FreeCodeCamp tasks completed.
 - **Academic Achievement:** 92% Distinction (Software Development NQF 5).
 - **Leadership:** 4 years managing high-pressure operational teams (Retail/Hygiene).
 - **Key Focus:** RESTful API Design, DOM Manipulation, and SDLC Management.
